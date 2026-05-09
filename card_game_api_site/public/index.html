@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Card Deck API demo</title>
+    <style>
+      :root {
+        font-family: system-ui, sans-serif;
+        line-height: 1.45;
+      }
+      body {
+        margin: 0 auto;
+        max-width: 52rem;
+        padding: 1.25rem;
+      }
+      pre {
+        background: #121826;
+        color: #dff;
+        padding: 1rem;
+        overflow-x: auto;
+        border-radius: 6px;
+      }
+      button {
+        margin-right: 0.5rem;
+        padding: 0.35rem 0.75rem;
+      }
+      .tag {
+        color: #5b7cfd;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Card deck API demo</h1>
+    <p>
+      Stateless API: keep <span class="tag">draw_pile</span>,
+      <span class="tag">current_card</span>,
+      <span class="tag">discard_pile</span> on the client and POST them back for
+      <code>/api/decks/draw</code> and <code>/api/decks/reshuffle</code>.
+    </p>
+
+    <h2>Deck names</h2>
+    <button id="fetchNames" type="button">GET /api/decks/names</button>
+    <pre id="namesOut">(results here)</pre>
+
+    <h2>Create deck</h2>
+    <button id="createDeck" type="button">POST /api/decks/create</button>
+    <span>uses <code>["testing"]</code></span>
+    <pre id="createOut">(results here)</pre>
+
+    <h2>Draw</h2>
+    <button id="drawOnce" type="button">POST /api/decks/draw</button>
+    <pre id="drawOut">(run create first)</pre>
+
+    <h2>Reshuffle</h2>
+    <p>Shuffles draw + discard only; <code>current_card</code> unchanged.</p>
+    <button id="reshuffle" type="button">POST /api/decks/reshuffle</button>
+    <pre id="reshuffleOut">(run create first)</pre>
+
+    <script>
+      const base = '';
+
+      /** @type {object | null} */
+      let state = null;
+
+      async function api(path, options = {}) {
+        const res = await fetch(base + path, {
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          ...options,
+        });
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = text;
+        }
+        if (!res.ok) throw new Error(res.status + ' ' + (data.error || text));
+        return data;
+      }
+
+      document.getElementById('fetchNames').onclick = async () => {
+        const el = document.getElementById('namesOut');
+        try {
+          el.textContent = JSON.stringify(await api('/api/decks/names'), null, 2);
+        } catch (e) {
+          el.textContent = String(e.message);
+        }
+      };
+
+      document.getElementById('createDeck').onclick = async () => {
+        const el = document.getElementById('createOut');
+        try {
+          state = await api('/api/decks/create', {
+            method: 'POST',
+            body: JSON.stringify({ deck_names: ['testing'] }),
+          });
+          el.textContent = JSON.stringify(state, null, 2);
+          document.getElementById('drawOut').textContent = '(use Draw)';
+          document.getElementById('reshuffleOut').textContent = JSON.stringify(state, null, 2);
+        } catch (e) {
+          el.textContent = String(e.message);
+        }
+      };
+
+      document.getElementById('drawOnce').onclick = async () => {
+        const el = document.getElementById('drawOut');
+        if (!state) {
+          el.textContent = 'Create a deck first.';
+          return;
+        }
+        try {
+          state = await api('/api/decks/draw', { method: 'POST', body: JSON.stringify(state) });
+          el.textContent = JSON.stringify(state, null, 2);
+          document.getElementById('reshuffleOut').textContent = JSON.stringify(state, null, 2);
+        } catch (e) {
+          el.textContent = String(e.message);
+        }
+      };
+
+      document.getElementById('reshuffle').onclick = async () => {
+        const el = document.getElementById('reshuffleOut');
+        if (!state) {
+          el.textContent = 'Create a deck first.';
+          return;
+        }
+        try {
+          state = await api('/api/decks/reshuffle', {
+            method: 'POST',
+            body: JSON.stringify(state),
+          });
+          el.textContent = JSON.stringify(state, null, 2);
+          document.getElementById('drawOut').textContent = JSON.stringify(state, null, 2);
+        } catch (e) {
+          el.textContent = String(e.message);
+        }
+      };
+    </script>
+  </body>
+</html>
