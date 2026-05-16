@@ -3,6 +3,7 @@ const express = require("express");
 const { pool } = require("./lib/dbPool");
 const {
   loadCardsByDeckNames,
+  loadDualExplorationItemPiles,
   listDeckNames,
   ValidationError,
 } = require("./lib/deckRepository");
@@ -67,7 +68,7 @@ app.get("/api/decks/names", async (_req, res, next) => {
   }
 });
 
-app.post("/api/decks/create", async (req, res, next) => {
+async function respondCreateSingleDeck(req, res, next) {
   const client = await pool.connect();
   try {
     const names = req.body?.deck_names ?? req.body?.deckNames;
@@ -79,6 +80,41 @@ app.post("/api/decks/create", async (req, res, next) => {
       draw_pile,
       current_card: null,
       discard_pile: [],
+    });
+  } catch (err) {
+    next(err);
+  } finally {
+    client.release();
+  }
+}
+
+/** Same payload as `/api/decks/create`: one shuffled pile + null current + empty discard (legacy alias). */
+app.post("/api/decks/create", respondCreateSingleDeck);
+app.post("/api/decks/create-single", respondCreateSingleDeck);
+
+/**
+ * Exploration vs Item split by DB `types.type_name`. Full card payloads: flavor_text, subtype_name,
+ * monster (or null), effects[], boosts[]. Each pile shuffled independently.
+ * `*_current_cards` stay arrays so multiple revealed cards fit later without changing the envelope.
+ */
+app.post("/api/decks/create-dual", async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    const names = req.body?.deck_names ?? req.body?.deckNames;
+    if (!names) {
+      throw new ValidationError("Provide deck_names as an array of deck name strings.");
+    }
+    const { exploration_drawpile, item_drawpile } = await loadDualExplorationItemPiles(
+      client,
+      names
+    );
+    res.json({
+      exploration_drawpile,
+      exploration_discardpile: [],
+      exploration_current_cards: [],
+      item_drawpile,
+      item_discard_pile: [],
+      item_current_cards: [],
     });
   } catch (err) {
     next(err);
