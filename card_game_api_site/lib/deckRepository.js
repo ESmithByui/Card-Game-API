@@ -247,11 +247,12 @@ async function fetchOrderedCardsByDeckNames(client, deckNames) {
 /**
  * @param {import('pg').PoolClient} client
  * @param {string[]} deckNames
+ * @param {string | number} [shuffleSeed] optional deterministic shuffle (see lib/shuffle.js)
  * @returns {Promise<object[]>} card rows as plain objects
  */
-async function loadCardsByDeckNames(client, deckNames) {
+async function loadCardsByDeckNames(client, deckNames, shuffleSeed) {
   const ordered = await fetchOrderedCardsByDeckNames(client, deckNames);
-  return shuffle(ordered);
+  return shuffle(ordered, shuffleSeed);
 }
 
 /**
@@ -260,9 +261,10 @@ async function loadCardsByDeckNames(client, deckNames) {
  *
  * @param {import('pg').PoolClient} client
  * @param {string[]} deckNames
+ * @param {string | number} [shuffleSeed] optional deterministic shuffle (see lib/shuffle.js)
  * @returns {Promise<{ exploration_drawpile: object[], item_drawpile: object[] }>}
  */
-async function loadDualExplorationItemPiles(client, deckNames) {
+async function loadDualExplorationItemPiles(client, deckNames, shuffleSeed) {
   const ordered = await fetchOrderedRichCardsByDeckNames(client, deckNames);
   const exploration = [];
   const items = [];
@@ -276,8 +278,8 @@ async function loadDualExplorationItemPiles(client, deckNames) {
     }
   }
   return {
-    exploration_drawpile: shuffle(exploration),
-    item_drawpile: shuffle(items),
+    exploration_drawpile: shuffle(exploration, shuffleSeed),
+    item_drawpile: shuffle(items, shuffleSeed),
   };
 }
 
