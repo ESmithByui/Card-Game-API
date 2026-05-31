@@ -52,7 +52,6 @@ const API_ROUTE_MANIFEST = [
     path: "/api/single/draw",
     about: "One draw; round-trip shuffle_seed on deck decides recycle shuffle (omit or null field → crypto).",
   },
-  { methods: ["POST"], path: "/api/decks/draw", about: "Legacy alias of /api/single/draw." },
   {
     methods: ["POST"],
     path: "/api/dual/draw/exploration",
@@ -532,9 +531,8 @@ app.post("/api/decks/create-dual", async (req, res, next) => {
   }
 });
 
-/** One card per request (same body as legacy POST /api/decks/draw). */
+/** One card per request; round-trip full single-track pile state. */
 app.post("/api/single/draw", respondSingleDraw);
-app.post("/api/decks/draw", respondSingleDraw);
 
 app.post("/api/dual/draw/exploration", dualDrawRoute("exploration"));
 app.post("/api/dual/draw/item", dualDrawRoute("item"));
