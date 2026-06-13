@@ -56,6 +56,9 @@ function buildRichDualCard(row, monsterMap, effectsMap, boostsMap) {
   if (row.flavor_text != null && row.flavor_text !== "") {
     card.flavor_text = row.flavor_text;
   }
+  if (row.type_name === "Item") {
+    card.cost = row.cost != null ? row.cost : 0;
+  }
 
   const rawMonster = monsterMap.get(id);
   if (rawMonster) {
@@ -116,7 +119,7 @@ async function fetchOrderedRichCardsByDeckNames(client, deckNames) {
     }
 
     const rows = await client.query(
-      `SELECT c.card_id, c.card_name, c.card_desc, c.flavor_text,
+      `SELECT c.card_id, c.card_name, c.card_desc, c.flavor_text, c.cost,
               d.deck_name, t.type_name, st.subtype_name, co.color_name
        FROM public.cards c
        JOIN public.decks d ON c.card_deck = d.deck_id

@@ -3,388 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Card Deck API demo</title>
-    <style>
-      :root {
-        font-family: system-ui, sans-serif;
-        line-height: 1.45;
-      }
-      body {
-        margin: 0 auto;
-        max-width: 56rem;
-        padding: 1.25rem;
-      }
-      pre {
-        background: #121826;
-        color: #dff;
-        padding: 1rem;
-        overflow-x: auto;
-        border-radius: 6px;
-        font-size: 0.85rem;
-      }
-      button {
-        margin-right: 0.5rem;
-        margin-bottom: 0.35rem;
-        padding: 0.35rem 0.75rem;
-      }
-      select,
-      input[type="text"] {
-        margin-right: 0.5rem;
-        padding: 0.25rem 0.4rem;
-      }
-      .tag {
-        color: #5b7cfd;
-      }
-      table.routes {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.9rem;
-        margin: 0.75rem 0 1rem;
-      }
-      table.routes th,
-      table.routes td {
-        border: 1px solid #ccc;
-        padding: 0.4rem 0.55rem;
-        vertical-align: top;
-        text-align: left;
-      }
-      table.routes th {
-        background: #f0f2f8;
-      }
-      table.routes code {
-        font-size: 0.85em;
-      }
-      section {
-        margin-bottom: 2rem;
-      }
-      .hint {
-        color: #555;
-        font-size: 0.92rem;
-      }
-      .method {
-        font-weight: 600;
-        white-space: nowrap;
-      }
-      .method-get {
-        color: #0a7;
-      }
-      .method-post {
-        color: #06c;
-      }
-    </style>
+    <title>Card Game API</title>
+    <link rel="stylesheet" href="/css/site.css" />
   </head>
   <body>
-    <h1>Card deck API demo &amp; reference</h1>
-    <p class="hint">
-      Stateless piles: clients keep <span class="tag">draw_pile</span>,
-      <span class="tag">current_card</span>, <span class="tag">discard_pile</span>, and
-      <span class="tag">shuffle_seed</span> (from deck create; <code>null</code> = random each shuffle)
-      and POST the full JSON back on draw/shuffle/mill. Set <code>shuffle_seed</code> only on
-      <code>/api/decks/create*</code> — later operations reuse the value on the pile object.
-      Dual-track routes use six pile arrays plus <code>shuffle_seed</code> on the dual object.
-    </p>
-
-    <section>
-      <h2>Introspection</h2>
+    <header class="site-header">
+      <nav class="site-nav">
+        <a href="/" aria-current="page">Home</a>
+        <a href="/api-demo.html">API Demo</a>
+        <a href="/effects.html">Effects</a>
+        <a href="/boosts.html">Boosts</a>
+        <a href="/routes.html">Routes</a>
+      </nav>
+    </header>
+    <main class="site-main">
+      <h1>Card Game API</h1>
       <p class="hint">
-        Discover the service and route catalog before calling pile operations.
+        Stateless pile API backed by PostgreSQL deck catalogs. Clients round-trip full pile JSON on
+        each draw, shuffle, peek, or mill call.
       </p>
-      <button id="fetchApi" type="button">GET /api</button>
-      <button id="fetchRoutes" type="button">GET /api/routes</button>
-      <button id="fetchHealth" type="button">GET /api/health</button>
-      <pre id="introspectOut">(responses here)</pre>
-    </section>
 
-    <section>
-      <h2>Route catalog</h2>
-      <p class="hint">
-        Loaded from <code>GET /api/routes</code> — same entries as the server manifest.
-      </p>
-      <button id="loadCatalog" type="button">Refresh route table</button>
-      <div id="routesTableWrap">
-        <p class="hint">(click Refresh route table)</p>
+      <div class="nav-cards">
+        <a class="nav-card" href="/api-demo.html">
+          <h2>API Demo</h2>
+          <p>Interactive examples for every pile endpoint with documented inputs.</p>
+        </a>
+        <a class="nav-card" href="/effects.html">
+          <h2>Effects</h2>
+          <p>Database-backed effect catalog rendered at request time.</p>
+        </a>
+        <a class="nav-card" href="/boosts.html">
+          <h2>Boosts</h2>
+          <p>Database-backed boost catalog rendered at request time.</p>
+        </a>
+        <a class="nav-card" href="/routes.html">
+          <h2>Routes</h2>
+          <p>Reference table loaded from <code>GET /api/routes</code>.</p>
+        </a>
       </div>
-    </section>
-
-    <section>
-      <h2>Deck catalog</h2>
-      <button id="fetchNames" type="button">GET /api/decks/names</button>
-      <pre id="namesOut">(results here)</pre>
-    </section>
-
-    <section>
-      <h2>Single-track demo</h2>
-      <p class="hint">
-        Pick a deck from the catalog (fetch names first), then create, draw, and shuffle.
-        Aliases <code>/api/decks/create</code> and <code>/api/decks/create-single</code> behave the same.
-      </p>
-      <label>
-        Deck for create:
-        <select id="deckSelect" disabled>
-          <option value="">— fetch names first —</option>
-        </select>
-      </label>
-      <button id="createDeck" type="button" disabled>POST /api/decks/create</button>
-      <pre id="createOut">(run create after selecting a deck)</pre>
-
-      <h3>Draw</h3>
-      <button id="drawOnce" type="button">POST /api/single/draw</button>
-      <pre id="drawOut">(run create first)</pre>
-
-      <h3>Shuffle</h3>
-      <p class="hint">
-        Merges draw + discard (recycles discard when draw is empty); <code>current_card</code> unchanged.
-      </p>
-      <button id="shufflePile" type="button">POST /api/decks/shuffle</button>
-      <pre id="shuffleOut">(run create first)</pre>
-    </section>
-
-    <section>
-      <h2>Other endpoints (reference)</h2>
-      <p class="hint">
-        Not wired as live buttons in this page — use the route catalog above or your own client.
-      </p>
-      <table class="routes">
-        <thead>
-          <tr>
-            <th>Method</th>
-            <th>Path</th>
-            <th>Body / notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="method method-post">POST</td>
-            <td><code>/api/decks/create-single</code></td>
-            <td>Alias of <code>/api/decks/create</code>. <code>{"deck_names": string[], "shuffle_seed"?: …}</code></td>
-          </tr>
-          <tr>
-            <td class="method method-post">POST</td>
-            <td><code>/api/decks/create-dual</code></td>
-            <td>
-              Same create body; response has exploration + item piles and
-              <code>shuffle_seed</code>.
-            </td>
-          </tr>
-          <tr>
-            <td class="method method-post">POST</td>
-            <td><code>/api/dual/draw/exploration</code><br /><code>/api/dual/draw/item</code></td>
-            <td>Full dual JSON + optional <code>draw_count</code> (or <code>count</code>). Drawn cards go to <code>*_current_cards</code>.</td>
-          </tr>
-          <tr>
-            <td class="method method-post">POST</td>
-            <td><code>/api/dual/shuffle/exploration</code><br /><code>/api/dual/shuffle/item</code></td>
-            <td>Full dual JSON; shuffles that track’s draw pile only.</td>
-          </tr>
-          <tr>
-            <td class="method method-post">POST</td>
-            <td><code>/api/single/peek</code></td>
-            <td><code>{"draw_pile": [...], "peek_count"?: n, "count"?: n}</code> — read-only; top = index 0.</td>
-          </tr>
-          <tr>
-            <td class="method method-post">POST</td>
-            <td><code>/api/dual/peek/exploration</code><br /><code>/api/dual/peek/item</code></td>
-            <td>Full dual JSON + <code>peek_count</code> only (no <code>count</code> alias). Returns <code>requested</code>, <code>returned</code>, <code>cards</code>.</td>
-          </tr>
-          <tr>
-            <td class="method method-post">POST</td>
-            <td><code>/api/single/mill</code></td>
-            <td>Full single pile JSON + optional <code>mill_count</code>. Omit <code>mill_count</code> → entire draw → discard; <code>0</code> → no-op.</td>
-          </tr>
-          <tr>
-            <td class="method method-post">POST</td>
-            <td><code>/api/dual/mill/exploration</code><br /><code>/api/dual/mill/item</code></td>
-            <td>Full dual JSON + optional <code>mill_count</code> (same semantics as single mill).</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <script>
-      const base = '';
-
-      /** @type {object | null} */
-      let state = null;
-
-      /** @type {string[]} */
-      let catalogNames = [];
-
-      async function api(path, options = {}) {
-        const res = await fetch(base + path, {
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          ...options,
-        });
-        const text = await res.text();
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          data = text;
-        }
-        if (!res.ok) throw new Error(res.status + ' ' + (data.error || text));
-        return data;
-      }
-
-      function showIntrospect(label, data) {
-        document.getElementById('introspectOut').textContent =
-          label + '\n\n' + JSON.stringify(data, null, 2);
-      }
-
-      function renderRoutesTable(routes) {
-        const wrap = document.getElementById('routesTableWrap');
-        if (!Array.isArray(routes) || routes.length === 0) {
-          wrap.innerHTML = '<p class="hint">No routes returned.</p>';
-          return;
-        }
-        const rows = routes
-          .map((r) => {
-            const methods = (r.methods || []).join(', ');
-            const cls = (r.methods || []).includes('GET') ? 'method-get' : 'method-post';
-            return (
-              '<tr><td class="method ' +
-              cls +
-              '">' +
-              methods +
-              '</td><td><code>' +
-              r.path +
-              '</code></td><td>' +
-              (r.about || '') +
-              '</td></tr>'
-            );
-          })
-          .join('');
-        wrap.innerHTML =
-          '<table class="routes"><thead><tr><th>Method</th><th>Path</th><th>About</th></tr></thead><tbody>' +
-          rows +
-          '</tbody></table>';
-      }
-
-      function populateDeckSelect(names) {
-        catalogNames = names;
-        const sel = document.getElementById('deckSelect');
-        const createBtn = document.getElementById('createDeck');
-        sel.innerHTML = '';
-        if (names.length === 0) {
-          sel.disabled = true;
-          createBtn.disabled = true;
-          sel.add(new Option('— no decks in catalog —', ''));
-          return;
-        }
-        for (const n of names) {
-          sel.add(new Option(n, n));
-        }
-        sel.disabled = false;
-        createBtn.disabled = false;
-      }
-
-      document.getElementById('fetchApi').onclick = async () => {
-        try {
-          showIntrospect('GET /api', await api('/api'));
-        } catch (e) {
-          showIntrospect('GET /api — error', String(e.message));
-        }
-      };
-
-      document.getElementById('fetchRoutes').onclick = async () => {
-        try {
-          const data = await api('/api/routes');
-          showIntrospect('GET /api/routes', data);
-          if (data && Array.isArray(data.routes)) {
-            renderRoutesTable(data.routes);
-          }
-        } catch (e) {
-          showIntrospect('GET /api/routes — error', String(e.message));
-        }
-      };
-
-      document.getElementById('fetchHealth').onclick = async () => {
-        try {
-          showIntrospect('GET /api/health', await api('/api/health'));
-        } catch (e) {
-          showIntrospect('GET /api/health — error', String(e.message));
-        }
-      };
-
-      document.getElementById('loadCatalog').onclick = async () => {
-        const wrap = document.getElementById('routesTableWrap');
-        wrap.innerHTML = '<p class="hint">Loading…</p>';
-        try {
-          const data = await api('/api/routes');
-          renderRoutesTable(data.routes);
-        } catch (e) {
-          wrap.innerHTML = '<p class="hint">Error: ' + String(e.message) + '</p>';
-        }
-      };
-
-      document.getElementById('fetchNames').onclick = async () => {
-        const el = document.getElementById('namesOut');
-        try {
-          const data = await api('/api/decks/names');
-          el.textContent = JSON.stringify(data, null, 2);
-          const raw = data && data.deck_names;
-          const names = Array.isArray(raw)
-            ? raw.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.trim())
-            : [];
-          populateDeckSelect(names);
-        } catch (e) {
-          el.textContent = String(e.message);
-        }
-      };
-
-      document.getElementById('createDeck').onclick = async () => {
-        const el = document.getElementById('createOut');
-        const deck = document.getElementById('deckSelect').value;
-        if (!deck) {
-          el.textContent = 'Select a deck (fetch names first).';
-          return;
-        }
-        try {
-          state = await api('/api/decks/create', {
-            method: 'POST',
-            body: JSON.stringify({ deck_names: [deck] }),
-          });
-          el.textContent = JSON.stringify(state, null, 2);
-          document.getElementById('drawOut').textContent = '(use Draw)';
-          document.getElementById('shuffleOut').textContent = JSON.stringify(state, null, 2);
-        } catch (e) {
-          el.textContent = String(e.message);
-        }
-      };
-
-      document.getElementById('drawOnce').onclick = async () => {
-        const el = document.getElementById('drawOut');
-        if (!state) {
-          el.textContent = 'Create a deck first.';
-          return;
-        }
-        try {
-          state = await api('/api/single/draw', { method: 'POST', body: JSON.stringify(state) });
-          el.textContent = JSON.stringify(state, null, 2);
-          document.getElementById('shuffleOut').textContent = JSON.stringify(state, null, 2);
-        } catch (e) {
-          el.textContent = String(e.message);
-        }
-      };
-
-      document.getElementById('shufflePile').onclick = async () => {
-        const el = document.getElementById('shuffleOut');
-        if (!state) {
-          el.textContent = 'Create a deck first.';
-          return;
-        }
-        try {
-          state = await api('/api/decks/shuffle', {
-            method: 'POST',
-            body: JSON.stringify(state),
-          });
-          el.textContent = JSON.stringify(state, null, 2);
-          document.getElementById('drawOut').textContent = JSON.stringify(state, null, 2);
-        } catch (e) {
-          el.textContent = String(e.message);
-        }
-      };
-
-      document.getElementById('loadCatalog').click();
-    </script>
+    </main>
+    <footer class="site-footer">
+      <p>Created using AALang and Gab</p>
+    </footer>
   </body>
 </html>

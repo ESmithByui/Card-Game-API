@@ -1,0 +1,27 @@
+# Render Blueprint for card-game-api-site
+#
+# Monorepo: set Render "Root Directory" to this folder (Card Game API/card_game_api_site).
+# Then add DATABASE_URL in the dashboard (same value as local .env, or a Render Postgres URL).
+#
+# Health check: GET /api/health
+# Smoke test after deploy: /api-demo.html → Fetch deck names
+
+services:
+  - type: web
+    name: card-game-api-site
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: PGSSL
+        value: "true"
+      - key: PG_POOL_MAX
+        value: "2"
+      # If the DB requires a custom CA (e.g. campus Postgres), upload the .pem as a Secret File
+      # and set PGSSLROOTCERT to that path (e.g. /etc/secrets/byuicse-psql-cert.pem):
+      # - key: PGSSLROOTCERT
+      #   sync: false

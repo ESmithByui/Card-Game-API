@@ -22,7 +22,8 @@ function pgSslOption() {
   const requireSsl =
     process.env.PGSSL === "true" ||
     process.env.PGSSL === "1" ||
-    /\bsslmode=(require|verify-ca|verify-full)\b/i.test(url);
+    /\bsslmode=(require|verify-ca|verify-full)\b/i.test(url) ||
+    /\.render\.com/i.test(url);
 
   const caPath = process.env.PGSSLROOTCERT?.trim();
   if (caPath) {

@@ -1,0 +1,410 @@
+:root {
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  color: #1a1f2e;
+  --accent: #3d5afe;
+  --accent-muted: #5b7cfd;
+  --surface: #f4f6fb;
+  --border: #d4dae8;
+  --code-bg: #121826;
+  --code-fg: #dff;
+  --error: #b00020;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1.25rem;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.site-nav a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.site-nav a:hover {
+  text-decoration: underline;
+}
+
+.site-nav a[aria-current="page"] {
+  color: #1a1f2e;
+  text-decoration: underline;
+}
+
+.site-main {
+  flex: 1;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2.5rem;
+  width: 100%;
+}
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 1rem 1.25rem;
+  text-align: center;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+h1 {
+  margin-top: 0;
+  font-size: 1.75rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin-top: 0;
+}
+
+h3 {
+  font-size: 1.05rem;
+}
+
+.hint {
+  color: #555;
+  font-size: 0.92rem;
+}
+
+.error {
+  color: var(--error);
+}
+
+.tag {
+  color: var(--accent-muted);
+}
+
+.nav-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.nav-card {
+  display: block;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.nav-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(61, 90, 254, 0.12);
+}
+
+.nav-card h2 {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.nav-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.demo-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.demo-section:last-child {
+  border-bottom: none;
+}
+
+.route-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.method {
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.method-get {
+  background: #e6f7ef;
+  color: #0a7;
+}
+
+.method-post {
+  background: #e8f0ff;
+  color: #06c;
+}
+
+.route-path {
+  font-family: ui-monospace, monospace;
+  font-size: 0.95rem;
+}
+
+.input-defs {
+  margin: 0.75rem 0 1rem;
+  font-size: 0.9rem;
+}
+
+.input-defs dt {
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.input-defs dd {
+  margin: 0.15rem 0 0 0;
+  color: #444;
+}
+
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.demo-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+button,
+.btn {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+select,
+input[type="text"],
+input[type="number"] {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.deck-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0.5rem 0;
+}
+
+.deck-checkboxes label {
+  font-size: 0.88rem;
+}
+
+.response-block {
+  background: var(--code-bg);
+  color: var(--code-fg);
+  padding: 1rem;
+  overflow-x: auto;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-family: ui-monospace, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 2.5rem;
+}
+
+.response-block.error-text {
+  background: #fff0f0;
+  color: var(--error);
+  border: 1px solid #f5c2c7;
+}
+
+table.routes {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+}
+
+table.routes th,
+table.routes td {
+  border: 1px solid var(--border);
+  padding: 0.45rem 0.6rem;
+  vertical-align: top;
+  text-align: left;
+}
+
+table.routes th {
+  background: var(--surface);
+}
+
+table.routes code {
+  font-size: 0.85em;
+}
+
+.catalog-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+
+.catalog-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.catalog-item:last-child {
+  border-bottom: none;
+}
+
+.catalog-name {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+}
+
+.catalog-desc {
+  margin: 0;
+  color: #444;
+}
+
+.state-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+
+.state-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.demo-banner {
+  background: #fff8e6;
+  border: 1px solid #f0d78c;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
+.demo-banner.error-banner {
+  background: #fff0f0;
+  border-color: #f5c2c7;
+}
+
+.deck-status {
+  font-size: 0.88rem;
+  margin: 0.35rem 0 0.5rem;
+}
+
+.deck-status.ok {
+  color: #0a7;
+}
+
+.deck-status.err {
+  color: var(--error);
+}
+
+.request-example-wrap {
+  margin: 0.75rem 0 1rem;
+}
+
+.request-example-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.request-example {
+  background: #eef1f8;
+  color: #1a1f2e;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-family: ui-monospace, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  border: 1px solid var(--border);
+}
+
+.demo-result {
+  margin-top: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.demo-result summary {
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #444;
+  user-select: none;
+}
+
+.demo-result[open] summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.demo-result .response-block {
+  margin: 0;
+  border-radius: 0 0 6px 6px;
+  max-height: 24rem;
+  overflow: auto;
+}
+
+.demo-result .response-block:not(.has-content) {
+  min-height: 0;
+  padding: 0.5rem 1rem;
+  color: #888;
+}
+
+.demo-request summary {
+  color: var(--accent);
+}

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Demo — Card Game API</title>
+    <link rel="stylesheet" href="/css/site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="site-nav">
+        <a href="/">Home</a>
+        <a href="/api-demo.html" aria-current="page">API Demo</a>
+        <a href="/effects.html">Effects</a>
+        <a href="/boosts.html">Boosts</a>
+        <a href="/routes.html">Routes</a>
+      </nav>
+    </header>
+    <main class="site-main">
+      <h1>Interactive API demo</h1>
+      <p class="hint">
+        Live calls to every pile endpoint. Single-track state is kept in
+        <code>singlePileState</code>; dual-track in <code>dualPileState</code>. Run
+        <code>npm start</code> and open this page at <code>http://localhost:3000/api-demo.html</code>.
+        Fetch deck names before create operations.
+      </p>
+
+      <details class="state-panel">
+        <summary>Current single pile state</summary>
+        <pre id="singleStatePreview" class="response-block">(no single pile)</pre>
+      </details>
+      <details class="state-panel">
+        <summary>Current dual pile state</summary>
+        <pre id="dualStatePreview" class="response-block">(no dual pile)</pre>
+      </details>
+
+      <section class="demo-section" id="demo-api">
+        <div class="route-meta">
+          <span class="method method-get">GET</span>
+          <span class="route-path">/api</span>
+        </div>
+        <p class="hint">Service index including the routes manifest copy.</p>
+        <dl class="input-defs">
+          <dt>Inputs</dt>
+          <dd>None. Button triggers fetch only.</dd>
+        </dl>
+        <div class="demo-controls">
+          <button id="btn-api" type="button">Send request</button>
+        </div>
+        <pre id="out-api" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-routes">
+        <div class="route-meta">
+          <span class="method method-get">GET</span>
+          <span class="route-path">/api/routes</span>
+        </div>
+        <p class="hint">JSON list of HTTP routes.</p>
+        <dl class="input-defs">
+          <dt>Inputs</dt>
+          <dd>None.</dd>
+          <dt>Response</dt>
+          <dd><code>{"routes": [...]}</code></dd>
+        </dl>
+        <div class="demo-controls">
+          <button id="btn-routes" type="button">Send request</button>
+        </div>
+        <pre id="out-routes" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-health">
+        <div class="route-meta">
+          <span class="method method-get">GET</span>
+          <span class="route-path">/api/health</span>
+        </div>
+        <p class="hint">Liveness probe.</p>
+        <dl class="input-defs">
+          <dt>Inputs</dt>
+          <dd>None.</dd>
+          <dt>Response</dt>
+          <dd><code>{"ok": true}</code></dd>
+        </dl>
+        <div class="demo-controls">
+          <button id="btn-health" type="button">Send request</button>
+        </div>
+        <pre id="out-health" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-deck-names">
+        <div class="route-meta">
+          <span class="method method-get">GET</span>
+          <span class="route-path">/api/decks/names</span>
+        </div>
+        <p class="hint">Postgres deck catalog names for create demos.</p>
+        <dl class="input-defs">
+          <dt>Inputs</dt>
+          <dd>None.</dd>
+          <dt>Response</dt>
+          <dd><code>{"deck_names": string[]}</code></dd>
+        </dl>
+        <div class="demo-controls">
+          <button id="btn-deck-names" type="button">Fetch deck names</button>
+        </div>
+        <p id="deckNamesStatus" class="deck-status">Click Fetch deck names to load the catalog.</p>
+        <pre id="out-deck-names" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-create-single">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/decks/create</span>
+          <span class="hint">(alias: /api/decks/create-single)</span>
+        </div>
+        <p class="hint">Create a single shuffled draw pile with empty discard and null current card.</p>
+        <dl class="input-defs">
+          <dt><code>deck_names</code></dt>
+          <dd>Required <code>string[]</code> — deck names from Postgres catalog.</dd>
+          <dt><code>shuffle_seed</code></dt>
+          <dd>
+            Optional. <code>null</code> | finite number | non-empty string. Omit or null → random
+            shuffle each recycle. Set only on create; round-trip on pile JSON thereafter.
+          </dd>
+          <dt>Response</dt>
+          <dd>
+            <code>draw_pile[]</code>, <code>discard_pile[]</code>, <code>current_card</code>
+            (object|null), <code>shuffle_seed</code>
+          </dd>
+        </dl>
+        <div id="singleDeckPick" class="deck-checkboxes"></div>
+        <div class="demo-controls">
+          <label>
+            shuffle_seed (optional):
+            <input id="singleShuffleSeed" type="text" placeholder="omit, null, number, or string" />
+          </label>
+          <button id="btn-create-single" type="button">Create single pile</button>
+        </div>
+        <pre id="out-create-single" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-create-dual">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/decks/create-dual</span>
+        </div>
+        <p class="hint">
+          Create exploration and item draw piles with rich card fields when present in DB.
+        </p>
+        <dl class="input-defs">
+          <dt><code>deck_names</code></dt>
+          <dd>Required <code>string[]</code>.</dd>
+          <dt><code>shuffle_seed</code></dt>
+          <dd>Same semantics as single create.</dd>
+          <dt>Response</dt>
+          <dd>
+            <code>exploration_drawpile</code>, <code>exploration_discardpile</code>,
+            <code>exploration_current_cards</code>, <code>item_drawpile</code>,
+            <code>item_discard_pile</code>, <code>item_current_cards</code>, <code>shuffle_seed</code>
+          </dd>
+        </dl>
+        <div id="dualDeckPick" class="deck-checkboxes"></div>
+        <div class="demo-controls">
+          <label>
+            shuffle_seed (optional):
+            <input id="dualShuffleSeed" type="text" placeholder="omit, null, number, or string" />
+          </label>
+          <button id="btn-create-dual" type="button">Create dual pile</button>
+        </div>
+        <pre id="out-create-dual" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-single-draw">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/single/draw</span>
+        </div>
+        <p class="hint">Draw one card; updates current_card, draw_pile, discard_pile.</p>
+        <dl class="input-defs">
+          <dt>Body</dt>
+          <dd>Full single pile JSON from create (round-trip entire object).</dd>
+          <dt>Behavior</dt>
+          <dd>One card per request; <code>shuffle_seed</code> carried on pile for recycle RNG.</dd>
+        </dl>
+        <div class="demo-controls">
+          <button id="btn-single-draw" type="button">Draw one card</button>
+        </div>
+        <pre id="out-single-draw" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-single-shuffle">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/decks/shuffle</span>
+        </div>
+        <p class="hint">Merge draw + discard; current_card unchanged.</p>
+        <dl class="input-defs">
+          <dt>Body</dt>
+          <dd>Full single pile JSON.</dd>
+          <dt>Behavior</dt>
+          <dd>Uses <code>shuffle_seed</code> on pile for RNG.</dd>
+        </dl>
+        <div class="demo-controls">
+          <button id="btn-single-shuffle" type="button">Shuffle pile</button>
+        </div>
+        <pre id="out-single-shuffle" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-single-peek">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/single/peek</span>
+        </div>
+        <p class="hint">Read-only peek at top of draw pile (index 0).</p>
+        <dl class="input-defs">
+          <dt><code>draw_pile</code></dt>
+          <dd>Required array of card objects from current single state.</dd>
+          <dt><code>peek_count</code></dt>
+          <dd>Optional positive integer, default 1. Alias: <code>count</code>. Max 512.</dd>
+        </dl>
+        <div class="demo-controls">
+          <label>
+            peek_count:
+            <input id="singlePeekCount" type="number" min="1" max="512" placeholder="default 1" />
+          </label>
+          <button id="btn-single-peek" type="button">Peek draw pile</button>
+        </div>
+        <pre id="out-single-peek" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-single-mill">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/single/mill</span>
+        </div>
+        <p class="hint">Move cards from draw pile top to discard without drawing.</p>
+        <dl class="input-defs">
+          <dt>Body</dt>
+          <dd>Full single pile JSON.</dd>
+          <dt><code>mill_count</code></dt>
+          <dd>
+            Optional non-negative integer. Omit → move entire draw_pile to discard. 0 → no-op. Max
+            8192.
+          </dd>
+        </dl>
+        <div class="demo-controls">
+          <label>
+            mill_count:
+            <input id="singleMillCount" type="number" min="0" max="8192" placeholder="omit = all" />
+          </label>
+          <button id="btn-single-mill" type="button">Mill draw pile</button>
+        </div>
+        <pre id="out-single-mill" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-dual-draw-exploration">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/dual/draw/exploration</span>
+        </div>
+        <p class="hint">Draw from exploration draw pile into exploration_current_cards.</p>
+        <dl class="input-defs">
+          <dt>Body</dt>
+          <dd>Full dual JSON.</dd>
+          <dt><code>draw_count</code></dt>
+          <dd>Optional positive integer, default 1. Alias: <code>count</code>. Max 512.</dd>
+        </dl>
+        <div class="demo-controls">
+          <label>
+            draw_count:
+            <input id="dualDrawExplorationCount" type="number" min="1" max="512" placeholder="default 1" />
+          </label>
+          <button id="btn-dual-draw-exploration" type="button">Draw exploration</button>
+        </div>
+        <pre id="out-dual-draw-exploration" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-dual-draw-item">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/dual/draw/item</span>
+        </div>
+        <p class="hint">Draw from item draw pile into item_current_cards.</p>
+        <dl class="input-defs">
+          <dt>Body</dt>
+          <dd>Full dual JSON.</dd>
+          <dt><code>draw_count</code></dt>
+          <dd>Optional positive integer, default 1. Alias: <code>count</code>. Max 512.</dd>
+        </dl>
+        <div class="demo-controls">
+          <label>
+            draw_count:
+            <input id="dualDrawItemCount" type="number" min="1" max="512" placeholder="default 1" />
+          </label>
+          <button id="btn-dual-draw-item" type="button">Draw item</button>
+        </div>
+        <pre id="out-dual-draw-item" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-dual-shuffle-exploration">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/dual/shuffle/exploration</span>
+        </div>
+        <p class="hint">Shuffle exploration draw pile only; exploration discard untouched.</p>
+        <dl class="input-defs">
+          <dt>Body</dt>
+          <dd>Full dual JSON.</dd>
+        </dl>
+        <div class="demo-controls">
+          <button id="btn-dual-shuffle-exploration" type="button">Shuffle exploration</button>
+        </div>
+        <pre id="out-dual-shuffle-exploration" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-dual-shuffle-item">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/dual/shuffle/item</span>
+        </div>
+        <p class="hint">Shuffle item draw pile only; item discard untouched.</p>
+        <dl class="input-defs">
+          <dt>Body</dt>
+          <dd>Full dual JSON.</dd>
+        </dl>
+        <div class="demo-controls">
+          <button id="btn-dual-shuffle-item" type="button">Shuffle item</button>
+        </div>
+        <pre id="out-dual-shuffle-item" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-dual-peek-exploration">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/dual/peek/exploration</span>
+        </div>
+        <p class="hint">Read-only peek at exploration draw pile top.</p>
+        <dl class="input-defs">
+          <dt>Body</dt>
+          <dd>Full dual JSON.</dd>
+          <dt><code>peek_count</code></dt>
+          <dd>Optional positive integer, default 1. No <code>count</code> alias on dual peek. Max 512.</dd>
+          <dt>Response</dt>
+          <dd><code>{"requested", "returned", "cards"}</code></dd>
+        </dl>
+        <div class="demo-controls">
+          <label>
+            peek_count:
+            <input id="dualPeekExplorationCount" type="number" min="1" max="512" placeholder="default 1" />
+          </label>
+          <button id="btn-dual-peek-exploration" type="button">Peek exploration</button>
+        </div>
+        <pre id="out-dual-peek-exploration" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-dual-peek-item">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/dual/peek/item</span>
+        </div>
+        <p class="hint">Read-only peek at item draw pile top.</p>
+        <dl class="input-defs">
+          <dt>Body</dt>
+          <dd>Full dual JSON.</dd>
+          <dt><code>peek_count</code></dt>
+          <dd>Optional positive integer, default 1. Max 512.</dd>
+        </dl>
+        <div class="demo-controls">
+          <label>
+            peek_count:
+            <input id="dualPeekItemCount" type="number" min="1" max="512" placeholder="default 1" />
+          </label>
+          <button id="btn-dual-peek-item" type="button">Peek item</button>
+        </div>
+        <pre id="out-dual-peek-item" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-dual-mill-exploration">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/dual/mill/exploration</span>
+        </div>
+        <p class="hint">Move top N from exploration draw to exploration discard.</p>
+        <dl class="input-defs">
+          <dt>Body</dt>
+          <dd>Full dual JSON.</dd>
+          <dt><code>mill_count</code></dt>
+          <dd>Same semantics as single mill. Max 8192.</dd>
+        </dl>
+        <div class="demo-controls">
+          <label>
+            mill_count:
+            <input id="dualMillExplorationCount" type="number" min="0" max="8192" placeholder="omit = all" />
+          </label>
+          <button id="btn-dual-mill-exploration" type="button">Mill exploration</button>
+        </div>
+        <pre id="out-dual-mill-exploration" class="response-block">(response here)</pre>
+      </section>
+
+      <section class="demo-section" id="demo-dual-mill-item">
+        <div class="route-meta">
+          <span class="method method-post">POST</span>
+          <span class="route-path">/api/dual/mill/item</span>
+        </div>
+        <p class="hint">Move top N from item draw to item discard.</p>
+        <dl class="input-defs">
+          <dt>Body</dt>
+          <dd>Full dual JSON.</dd>
+          <dt><code>mill_count</code></dt>
+          <dd>Same semantics as single mill. Max 8192.</dd>
+        </dl>
+        <div class="demo-controls">
+          <label>
+            mill_count:
+            <input id="dualMillItemCount" type="number" min="0" max="8192" placeholder="omit = all" />
+          </label>
+          <button id="btn-dual-mill-item" type="button">Mill item</button>
+        </div>
+        <pre id="out-dual-mill-item" class="response-block">(response here)</pre>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <p>Created using AALang and Gab</p>
+    </footer>
+    <script src="/js/api-demo.js"></script>
+  </body>
+</html>

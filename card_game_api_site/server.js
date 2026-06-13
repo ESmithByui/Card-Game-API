@@ -19,6 +19,7 @@ const {
   DrawConflictError,
   ShuffleConflictError,
 } = require("./lib/drawEngine");
+const { renderEffectsPage, renderBoostsPage } = require("./lib/websiteCatalog");
 
 /** Curated docs for introspection (@see GET /api/routes); keep in sync when adding endpoints. */
 const API_ROUTE_MANIFEST = [
@@ -463,6 +464,24 @@ app.get("/api/health", (_req, res) => {
 
 app.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.get("/effects.html", async (_req, res, next) => {
+  try {
+    const html = await renderEffectsPage(pool);
+    res.type("html").send(html);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/boosts.html", async (_req, res, next) => {
+  try {
+    const html = await renderBoostsPage(pool);
+    res.type("html").send(html);
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.use(express.static(path.join(__dirname, "public")));

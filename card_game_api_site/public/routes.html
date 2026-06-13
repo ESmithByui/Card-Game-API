@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Routes — Card Game API</title>
+    <link rel="stylesheet" href="/css/site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="site-nav">
+        <a href="/">Home</a>
+        <a href="/api-demo.html">API Demo</a>
+        <a href="/effects.html">Effects</a>
+        <a href="/boosts.html">Boosts</a>
+        <a href="/routes.html" aria-current="page">Routes</a>
+      </nav>
+    </header>
+    <main class="site-main">
+      <h1>API route reference</h1>
+      <p class="hint">
+        Loaded live from <code>GET /api/routes</code>. Same manifest as the service index at
+        <code>GET /api</code>.
+      </p>
+      <div class="demo-controls">
+        <button id="refreshRoutes" type="button">Refresh route table</button>
+      </div>
+      <div id="routesTableWrap">
+        <p class="hint">Loading routes…</p>
+      </div>
+    </main>
+    <footer class="site-footer">
+      <p>Created using AALang and Gab</p>
+    </footer>
+    <script src="/js/routes.js"></script>
+  </body>
+</html>
