@@ -44,7 +44,7 @@ function pageShell(title, activePath, mainContent) {
       ${mainContent}
     </main>
     <footer class="site-footer">
-      <p>Created using AALang and Gab</p>
+      <p>Card Game API Project</p>
     </footer>
   </body>
 </html>`;
